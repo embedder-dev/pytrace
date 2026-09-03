@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytrace-embedder"
+description = "Python SDK for SEGGER J-Link and J-Trace: ETM instruction trace, code coverage, RTT, SWO and target control"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "The pytrace authors" }]
+keywords = [
+    "segger",
+    "jlink",
+    "jtrace",
+    "etm",
+    "swd",
+    "jtag",
+    "embedded",
+    "debugging",
+    "instruction-trace",
+    "code-coverage",
+    "cortex-m",
+    "arm",
+    "rtt",
+    "swo",
+    "elf",
+    "dwarf",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: Software Development :: Embedded Systems",
+    "Topic :: System :: Hardware",
+    "Typing :: Typed",
+]
+# No runtime dependencies, on purpose: the SDK has to work on a bench machine
+# with nothing installed on it. ELF and DWARF parsing are implemented here
+# rather than pulled from pyelftools for the same reason.
+dependencies = []
+dynamic = ["version"]
+
+[project.optional-dependencies]
+# Only used to demangle C++ symbol names. Without it the SDK shells out to
+# c++filt, and without that it reports mangled names rather than failing.
+demangle = ["cxxfilt>=0.3"]
+# pyelftools is not optional for a meaningful test run: the DWARF line table is
+# cross-checked against it on every instruction address of the oracle firmware,
+# which is what holds the hand-written parser to an independent implementation.
+dev = ["pytest>=7", "pyelftools>=0.29"]
+
+[project.urls]
+Homepage = "https://github.com/embedder-dev/pytrace"
+Repository = "https://github.com/embedder-dev/pytrace"
+Issues = "https://github.com/embedder-dev/pytrace/issues"
+Changelog = "https://github.com/embedder-dev/pytrace/blob/main/CHANGELOG.md"
+
+[project.scripts]
+pytrace-embedder = "jtrace.cli:main"
+
+[tool.setuptools.dynamic]
+# Single source of truth. The same string stamps every capture's sidecar, so a
+# copy that drifts mislabels artifacts silently rather than failing.
+version = { attr = "jtrace.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["jtrace*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# --strict-markers so a typo in a marker name is an error rather than a marker
+# that silently applies to nothing.
+addopts = "--strict-markers"

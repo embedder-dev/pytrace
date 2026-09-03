@@ -1,0 +1,15 @@
+# Python build and test artifacts. Scoped to this directory rather than written
+# as a broad pattern, so that a `coverage/` output directory -- which this SDK
+# writes -- is never swallowed by a rule meant for a build tool.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Captures written by a local run. The second is the default; the first is
+# what `store_dirname=".embedder"` writes for the Embedder viewer.
+.embedder/
+.pytrace/

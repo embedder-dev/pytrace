@@ -1,0 +1,15 @@
+pytrace
+Copyright 2026 The pytrace authors
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+This product is an independent project and is not affiliated with, endorsed
+by, or sponsored by SEGGER Microcontroller GmbH. "SEGGER", "J-Link", "J-Trace"
+and "Ozone" are trademarks of SEGGER Microcontroller GmbH.
+
+pytrace binds the J-Link DLL at runtime through ctypes and redistributes no
+SEGGER code, headers or binaries. The J-Link Software and Documentation Pack
+is a separate download, governed by SEGGER's own licence terms, which you must
+obtain and accept yourself:
+
+    https://www.segger.com/downloads/jlink

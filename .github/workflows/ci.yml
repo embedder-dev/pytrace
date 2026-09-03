@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Nothing in the suite needs a probe, and the oracle firmware is committed
+    # under tests/fixtures, so this runs anywhere.
+    #
+    # --fail-on-skip turns any unmarked skip into a failure: a skip is how
+    # thirty tests once retired themselves silently when a fixture moved. The
+    # two tests that check this SDK's prototypes against the real library do
+    # need the SEGGER software pack, which a runner cannot have; they carry the
+    # requires_jlink_software marker and are exempt.
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Test
+        run: python -m pytest tests/ -q -rs --fail-on-skip
+
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build twine
+      - name: Build
+        run: python -m build
+      - name: Check metadata
+        run: python -m twine check dist/*
+      - name: Import from the built wheel
+        # Catches a packaging mistake the test run cannot: tests import from
+        # the source tree, so a module missing from the wheel passes there and
+        # fails for the first person to pip install it.
+        run: |
+          python -m venv /tmp/wheeltest
+          /tmp/wheeltest/bin/pip install --quiet dist/*.whl
+          /tmp/wheeltest/bin/python -c "import jtrace; print(jtrace.__version__)"
+          /tmp/wheeltest/bin/pytrace-embedder elf --help > /dev/null
